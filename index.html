@@ -11,10 +11,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <style>
+        * { box-sizing: border-box; } /* 關鍵：防止寬度撐破 */
+
         :root {
             --color-winter-blue: #0068A7;
             --color-winter-pale: #D4F0F6;
             --color-winter-pink: #F8B5B5;
+            --color-pink-dark: #f09a9a;
             --white: #ffffff;
             --text-dark: #2c3e50;
             --shadow: 0 10px 40px rgba(0, 104, 167, 0.15);
@@ -26,95 +29,134 @@
             color: var(--text-dark);
             margin: 0; padding: 0;
             min-height: 100vh;
+            overflow-x: hidden; /* 防止左右晃動 */
         }
 
         header {
             background: linear-gradient(135deg, var(--color-winter-blue), #004d7c);
             color: white;
-            padding: 50px 20px;
+            padding: 60px 20px 80px; /* 增加底部內距給搜尋欄空間 */
             text-align: center;
             box-shadow: var(--shadow);
         }
 
         .brand-container {
-            display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px;
+            display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;
         }
 
-        .brand-logo { width: 60px; height: 60px; transition: transform 0.6s ease; cursor: pointer; }
+        .brand-logo { width: 55px; height: 55px; transition: transform 0.6s ease; cursor: pointer; }
         .brand-logo:hover { transform: rotate(72deg); }
 
         .header-actions {
-            margin-top: 25px;
             display: flex; justify-content: center; align-items: center; gap: 15px;
-            flex-wrap: wrap;
+            flex-wrap: wrap; /* 手機板自動換行 */
         }
 
+        /* 修復：讓兩個按鈕大小完全一致 */
         .btn {
-            padding: 12px 28px; border-radius: 50px; cursor: pointer;
-            font-weight: 700; transition: 0.3s; text-decoration: none;
-            display: inline-flex; align-items: center; gap: 8px; border: none;
+            min-width: 160px; /* 設定最小寬度 */
+            height: 48px;     /* 固定高度 */
+            padding: 0 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center; /* 文字置中 */
+            border: none;
         }
+
+        .btn-template { background: transparent; color: white; border: 2px solid var(--color-winter-pink); }
+        .btn-template:hover { background: rgba(248, 181, 181, 0.15); border-color: white; }
 
         .btn-upload { background: var(--color-winter-pink); color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .btn-template { background: transparent; color: white; border: 2px solid var(--color-winter-pink); }
-        .btn-template:hover { background: rgba(248, 181, 181, 0.15); }
+        .btn-upload:hover { background: var(--color-pink-dark); transform: translateY(-2px); }
+        .btn-upload:active { transform: translateY(0) scale(0.95); }
 
-        .container { max-width: 1440px; margin: 0 auto; padding: 20px; }
+        .container { max-width: 1440px; margin: 0 auto; padding: 0 20px 40px; }
 
+        /* 修復：手機板搜尋欄位不溢出 */
         .search-box {
-            width: 100%; max-width: 650px; margin: -35px auto 50px;
-            display: block; padding: 18px 30px; border: none;
-            border-radius: 50px; font-size: 1.1rem; box-shadow: var(--shadow); outline: none;
-            position: relative; z-index: 10;
+            width: 92%;           /* 使用百分比 */
+            max-width: 650px;     /* 限制最大寬度 */
+            margin: -30px auto 50px; /* 稍微往上移 */
+            display: block;
+            padding: 16px 25px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            box-shadow: var(--shadow);
+            outline: none;
+            position: relative;
+            z-index: 100;
         }
 
-        /* 解決 Figure 2 右側空白的核心：auto-fill */
         .color-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 30px;
+            grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+            gap: 25px;
         }
 
         .section-header {
-            grid-column: 1 / -1; font-size: 2rem; font-weight: 700;
-            color: var(--color-winter-blue); margin: 50px 0 20px;
-            border-bottom: 4px solid var(--color-winter-pink); padding-bottom: 15px;
+            grid-column: 1 / -1; font-size: 1.8rem; font-weight: 700;
+            color: var(--color-winter-blue); margin: 40px 0 20px;
+            border-bottom: 4px solid var(--color-winter-pink); padding-bottom: 12px;
         }
 
         .color-card {
-            background: var(--white); border-radius: 24px; overflow: hidden;
+            background: var(--white); border-radius: 20px; overflow: hidden;
             box-shadow: 0 5px 20px rgba(0,0,0,0.05); transition: 0.3s;
             display: flex; flex-direction: column;
         }
-        .color-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0, 104, 167, 0.15); }
+        .color-card:hover { transform: translateY(-8px); }
 
-        .card-img { width: 100%; height: 200px; object-fit: cover; border-bottom: 3px solid var(--color-winter-pink); }
-
-        .swatches { height: 140px; display: flex; }
+        .swatches { height: 130px; display: flex; }
         .swatch {
             flex: 1; display: flex; align-items: center; justify-content: center;
             font-weight: 700; cursor: pointer; transition: 0.4s;
             color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.3);
         }
-        .swatch:hover { flex: 1.8; }
+        .swatch:hover { flex: 1.6; outline: 3px solid var(--color-winter-pink); outline-offset: -3px; }
 
-        .card-body { padding: 25px; flex: 1; display: flex; flex-direction: column; }
-        .card-title { font-size: 1.3rem; font-weight: 700; color: var(--color-winter-blue); margin-bottom: 10px; }
-        .card-desc { font-size: 1rem; color: #576574; line-height: 1.5; flex: 1; }
+        .card-body { padding: 22px; flex: 1; display: flex; flex-direction: column; }
+        .card-title { font-size: 1.2rem; font-weight: 700; color: var(--color-winter-blue); margin-bottom: 8px; }
+        .card-desc { font-size: 0.95rem; color: #576574; line-height: 1.5; flex: 1; }
 
+        /* 複製按鈕粉紅互動 */
         .btn-copy-card {
-            background: #f1f2f6; color: var(--color-winter-blue); border: none;
-            padding: 10px; border-radius: 12px; margin-top: 20px;
-            cursor: pointer; font-weight: 700;
+            background: #f1f2f6; 
+            color: var(--color-winter-blue); 
+            border: none;
+            padding: 12px; 
+            border-radius: 12px; 
+            margin-top: 15px;
+            cursor: pointer; 
+            font-weight: 700;
+            transition: all 0.3s ease;
         }
+        .btn-copy-card:hover { 
+            background: var(--color-winter-pink); 
+            color: white; 
+            box-shadow: 0 4px 12px rgba(248, 181, 181, 0.4);
+        }
+        .btn-copy-card:active { transform: scale(0.96); }
 
         #toast {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            background: var(--text-dark); color: white; padding: 14px 35px; border-radius: 50px;
-            opacity: 0; transition: 0.3s; z-index: 1000;
+            background: var(--text-dark); color: white; padding: 12px 30px; border-radius: 50px;
+            opacity: 0; transition: 0.3s; z-index: 1000; font-size: 0.9rem;
         }
 
         #fileInput { display: none; }
+        
+        @media (max-width: 480px) {
+            .btn { width: 100%; min-width: none; } /* 手機板按鈕滿版更好看 */
+            .section-header { font-size: 1.4rem; }
+        }
     </style>
 </head>
 <body>
@@ -130,18 +172,18 @@
             <circle cx="30" cy="45" r="15" fill="#0068A7" />
             <circle cx="50" cy="50" r="10" fill="white" />
         </svg>
-        <h1>線上色卡管理系統</h1>
+        <h1>線上色卡管理</h1>
     </div>
 
     <div class="header-actions">
         <a href="./color.xlsx" download="color_template.xlsx" class="btn btn-template">📥 下載範本</a>
-        <button class="btn btn-upload" onclick="document.getElementById('fileInput').click()">📂 上傳 Excel 檔案</button>
+        <button class="btn btn-upload" onclick="document.getElementById('fileInput').click()">📂 上傳 Excel</button>
         <input type="file" id="fileInput" accept=".xlsx, .xls">
     </div>
 </header>
 
 <div class="container">
-    <input type="text" id="searchInput" class="search-box" placeholder="🔍 搜尋主題、顏色或關鍵詞...">
+    <input type="text" id="searchInput" class="search-box" placeholder="🔍 搜尋名稱、色碼或關鍵詞...">
     <div id="resultArea" class="color-grid"></div>
 </div>
 
@@ -151,12 +193,11 @@
     const resultArea = document.getElementById('resultArea');
     const searchInput = document.getElementById('searchInput');
 
-    // 啟動讀取
     window.addEventListener('load', () => {
         fetch('./color.xlsx')
             .then(res => res.ok ? res.arrayBuffer() : Promise.reject())
             .then(data => renderExcel(XLSX.read(new Uint8Array(data), {type: 'array'})))
-            .catch(() => { resultArea.innerHTML = '<p style="grid-column:1/-1; text-align:center;">請上傳 Excel 檔案開始。</p>'; });
+            .catch(() => { resultArea.innerHTML = '<p style="grid-column:1/-1; text-align:center; padding:50px;">請點擊上方按鈕上傳 Excel 開始。</p>'; });
     });
 
     document.getElementById('fileInput').addEventListener('change', (e) => {
@@ -165,19 +206,10 @@
         reader.readAsArrayBuffer(e.target.files[0]);
     });
 
-    // 核心解析器：使用正則表達式過濾 HEX
-    function extractSafeHex(value) {
-        if (!value) return null;
-        // 尋找符合 # 加上 6 位或 3 位 HEX 格式的字串，並排除掉後面的雜質
-        const match = String(value).match(/#[0-9A-Fa-f]{6}|#[0-9A-Fa-f]{3}/);
-        return match ? match[0] : null;
-    }
-
     function renderExcel(workbook) {
         resultArea.innerHTML = '';
         workbook.SheetNames.forEach(sheetName => {
             if (sheetName.includes("工作表1")) return;
-
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
             if (rows.length === 0) return;
 
@@ -187,42 +219,28 @@
             resultArea.appendChild(header);
 
             rows.forEach(row => {
-                // 智慧欄位映射
-                const title = row['類別 / 主題'] || row['主題名稱'] || row['色卡主題'] || row['色卡名稱 (左 x 右)'] || "未命名配色";
+                const title = row['類別 / 主題'] || row['主題名稱'] || row['色卡主題'] || row['色卡名稱 (左 x 右)'] || "未命名";
                 const desc = row['視覺關鍵詞'] || row['視覺印象'] || row['應用場景建議'] || row['設計情緒建議'] || "";
                 
-                // 收集該行所有符合 HEX 格式的顏色
                 let foundColors = [];
-                let foundImage = null;
-
                 Object.values(row).forEach(val => {
-                    const hex = extractSafeHex(val);
-                    if (hex) foundColors.push(hex);
-                    
-                    if (String(val).match(/\.(jpg|jpeg|png|webp|gif)$/i)) foundImage = val;
+                    const match = String(val).match(/#[0-9A-Fa-f]{6}|#[0-9A-Fa-f]{3}/);
+                    if (match) foundColors.push(match[0]);
                 });
 
-                // 只有在抓到至少一個顏色時才生成卡片
                 if (foundColors.length > 0) {
                     const card = document.createElement('div');
                     card.className = 'color-card';
-                    
-                    let innerHTML = foundImage ? `<img src="./${foundImage}" class="card-img" onerror="this.style.display='none'">` : '';
-                    
-                    innerHTML += `<div class="swatches">`;
-                    foundColors.slice(0, 2).forEach(c => {
-                        innerHTML += `<div class="swatch" style="background:${c}; color:${getContrast(c)}" onclick="copyText('${c}')">${c}</div>`;
-                    });
-                    innerHTML += `</div>`;
-                    
-                    innerHTML += `
+                    card.innerHTML = `
+                        <div class="swatches">
+                            ${foundColors.slice(0, 2).map(c => `<div class="swatch" style="background:${c}; color:${getContrast(c)}" onclick="copyText('${c}')">${c}</div>`).join('')}
+                        </div>
                         <div class="card-body">
                             <div class="card-title">${title}</div>
                             <div class="card-desc">${desc}</div>
-                            <button class="btn-copy-card" onclick="copyText('${foundColors.join(', ')}')">複製全部色標</button>
+                            <button class="btn-copy-card" onclick="copyText('${foundColors.slice(0, 2).join(', ')}')">複製色標</button>
                         </div>
                     `;
-                    card.innerHTML = innerHTML;
                     resultArea.appendChild(card);
                 }
             });
