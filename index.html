@@ -1,14 +1,18 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>線上色卡資料庫</title>
+    
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23D4F0F6' /><circle cx='50' cy='30' r='15' fill='%230068A7' /><circle cx='70' cy='45' r='15' fill='%23F8B5B5' /><circle cx='62' cy='70' r='15' fill='%230068A7' /><circle cx='38' cy='70' r='15' fill='%23F8B5B5' /><circle cx='30' cy='45' r='15' fill='%230068A7' /><circle cx='50' cy='50' r='10' fill='white' /></svg>">
+    
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
     <style>
         :root {
-            /* 冬日花卉主題配色 */
+            /* Winter Blossom 主題色標 */
             --color-winter-blue: #0068A7;
             --color-winter-pale: #D4F0F6;
             --color-winter-pink: #F8B5B5;
@@ -22,77 +26,67 @@
             background-color: var(--color-winter-pale);
             color: var(--text-dark);
             margin: 0;
-            padding: 20px;
-            line-height: 1.6;
+            padding: 0;
             min-height: 100vh;
         }
 
         header {
             text-align: center;
-            padding: 40px 20px;
+            padding: 50px 20px;
             background: linear-gradient(135deg, var(--color-winter-blue), #004d7c);
-            color: white;
-            border-radius: 20px;
-            margin-bottom: 30px;
+            color: var(--white);
             box-shadow: 0 10px 40px rgba(0, 104, 167, 0.3);
             position: relative;
-            overflow: hidden;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .brand-logo {
+            width: 50px;
+            height: 50px;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+
+        .brand-logo:hover {
+            transform: rotate(72deg);
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
+            padding: 20px;
         }
 
-        /* 搜尋框 - 預設顯示 */
         .search-container {
-            position: relative;
             max-width: 600px;
-            margin: 0 auto 40px auto;
+            margin: -35px auto 40px;
+            position: relative;
+            z-index: 10;
         }
 
         .search-box {
             width: 100%;
             padding: 15px 25px;
-            border: 2px solid var(--white);
-            background: rgba(255, 255, 255, 0.9);
+            border: none;
             border-radius: 50px;
             font-size: 1.1rem;
             outline: none;
             box-shadow: var(--shadow);
             font-family: 'Noto Sans TC', sans-serif;
-            transition: all 0.3s;
         }
 
-        .search-box:focus {
-            background: var(--white);
-            border-color: var(--color-winter-blue);
-        }
-
-        /* 小小的手動上傳按鈕 (備用) */
-        .manual-upload-btn {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            margin-top: 15px;
-            transition: background 0.3s;
-        }
-
-        .manual-upload-btn:hover {
-            background: rgba(255, 255, 255, 0.4);
-        }
-
-        #fileInput { display: none; }
-
-        /* Grid 佈局 */
         .grid-section {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 25px;
+            margin-bottom: 50px;
         }
 
         .sheet-title {
@@ -108,378 +102,267 @@
             align-items: center;
         }
 
-        .sheet-badge {
-            font-size: 0.9rem;
-            background: var(--color-winter-pink);
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-        }
-
         .color-card {
             background: var(--white);
-            border-radius: 16px;
+            border-radius: 20px;
             overflow: hidden;
             box-shadow: var(--shadow);
-            transition: transform 0.2s;
+            transition: transform 0.3s ease;
             display: flex;
             flex-direction: column;
-            animation: fadeIn 0.5s ease forwards;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .color-card:hover { transform: translateY(-8px); }
+
+        .color-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-bottom: 2px solid var(--color-winter-pink);
         }
 
-        .color-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .color-preview-container {
+        .color-swatches {
             height: 120px;
             display: flex;
         }
 
-        .color-swatch {
+        .swatch {
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
+            font-weight: 700;
             font-size: 0.9rem;
             text-shadow: 0 1px 3px rgba(0,0,0,0.2);
             cursor: pointer;
             transition: flex 0.3s;
         }
-        
-        .color-swatch:hover {
-            flex: 1.5;
-        }
 
-        .card-body {
-            padding: 20px;
-            flex: 1;
-        }
+        .swatch:hover { flex: 1.5; }
+
+        .card-body { padding: 20px; flex: 1; }
 
         .card-title {
             font-weight: 700;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             color: var(--color-winter-blue);
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         .card-desc {
-            font-size: 0.9rem;
-            color: #666;
-            margin-bottom: 15px;
-            line-height: 1.4;
+            font-size: 0.95rem;
+            color: #636e72;
+            margin-bottom: 20px;
+            line-height: 1.5;
         }
 
-        .btn-copy {
+        .btn-copy-all {
             background: var(--color-winter-blue);
-            color: white;
+            color: var(--white);
             border: none;
-            padding: 8px 15px;
-            border-radius: 8px;
+            padding: 10px;
+            border-radius: 10px;
             width: 100%;
+            font-weight: 700;
             cursor: pointer;
             font-family: 'Noto Sans TC', sans-serif;
             transition: background 0.2s;
         }
 
-        .btn-copy:hover {
-            background: var(--color-winter-pink);
-        }
+        .btn-copy-all:hover { background: var(--color-winter-pink); }
 
-        /* Toast */
         #toast {
             position: fixed;
             bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
-            background: #2c3e50;
-            color: white;
+            background: var(--text-dark);
+            color: var(--white);
             padding: 12px 30px;
             border-radius: 50px;
             opacity: 0;
-            pointer-events: none;
             transition: opacity 0.3s;
             z-index: 9999;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
-        .loading-state {
-            text-align: center;
-            padding: 50px;
-            color: var(--color-winter-blue);
-            font-size: 1.2rem;
-        }
-
+        .loading-state { text-align: center; padding: 50px; color: var(--color-winter-blue); }
         .spinner {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(0, 104, 167, 0.1);
-            border-left-color: var(--color-winter-blue);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
+            width: 40px; height: 40px; border: 4px solid rgba(0, 104, 167, 0.1);
+            border-left-color: var(--color-winter-blue); border-radius: 50%;
+            animation: spin 1s linear infinite; margin: 0 auto 20px;
         }
-
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* 錯誤訊息 */
-        .error-msg {
-            color: #e74c3c;
-            background: #fde8e7;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            margin: 20px auto;
-            max-width: 600px;
-            display: none;
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>線上色卡資料庫</h1>
-    <p>自動讀取 color.xlsx ‧ 繁體校正 ‧ 智慧搜尋</p>
-    
-    <input type="file" id="fileInput" accept=".xlsx, .xls">
-    <button class="manual-upload-btn" onclick="document.getElementById('fileInput').click()">
-        📂 手動上傳其他 Excel
-    </button>
+    <div class="brand-container">
+        <svg class="brand-logo" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="48" fill="#D4F0F6" />
+            <circle cx="50" cy="30" r="15" fill="#0068A7" />
+            <circle cx="70" cy="45" r="15" fill="#F8B5B5" />
+            <circle cx="62" cy="70" r="15" fill="#0068A7" />
+            <circle cx="38" cy="70" r="15" fill="#F8B5B5" />
+            <circle cx="30" cy="45" r="15" fill="#0068A7" />
+            <circle cx="50" cy="50" r="10" fill="white" />
+        </svg>
+        <h1>線上色卡資料庫</h1>
+    </div>
+    <p>全方位美學管理系統</p>
 </header>
 
 <div class="container">
-    
     <div class="search-container">
-        <input type="text" id="searchInput" class="search-box" placeholder="🔍 搜尋顏色名稱、HEX 代碼或描述...">
+        <input type="text" id="searchInput" class="search-box" placeholder="🔍 搜尋配色名稱、HEX 或關鍵詞...">
     </div>
-
-    <div id="errorMsg" class="error-msg"></div>
 
     <div id="loading" class="loading-state">
         <div class="spinner"></div>
-        <p>正在從雲端讀取 Excel 色譜...</p>
+        <p>正在載入美學宇宙...</p>
     </div>
 
     <div id="resultArea"></div>
-
 </div>
 
-<div id="toast">已複製</div>
+<div id="toast">已複製成功</div>
 
 <script>
     const resultArea = document.getElementById('resultArea');
     const searchInput = document.getElementById('searchInput');
     const loading = document.getElementById('loading');
-    const errorMsg = document.getElementById('errorMsg');
-    const fileInput = document.getElementById('fileInput');
 
-    // 當頁面載入完成時，自動執行
+    // 頁面載入自動讀取
     window.addEventListener('load', () => {
-        loadDefaultFile();
-    });
-
-    // 1. 自動讀取 color.xlsx
-    function loadDefaultFile() {
-        // 使用 fetch 抓取同一層目錄下的 color.xlsx
         fetch('./color.xlsx')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("找不到 color.xlsx，請確認檔案已上傳至 GitHub 且檔名正確。");
-                }
-                return response.arrayBuffer();
-            })
+            .then(res => res.arrayBuffer())
             .then(data => {
                 const workbook = XLSX.read(new Uint8Array(data), {type: 'array'});
                 processWorkbook(workbook);
             })
-            .catch(error => {
-                showError(error.message);
-                loading.style.display = 'none';
+            .catch(err => {
+                loading.innerHTML = "<p>⚠️ 找不到 color.xlsx，請確認檔案已上傳至 GitHub。</p>";
             });
-    }
-
-    // 2. 允許手動上傳 (備用功能)
-    fileInput.addEventListener('change', (e) => {
-        if(e.target.files.length) {
-            loading.style.display = 'block';
-            resultArea.innerHTML = '';
-            errorMsg.style.display = 'none';
-            
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const data = new Uint8Array(event.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                processWorkbook(workbook);
-            };
-            reader.readAsArrayBuffer(e.target.files[0]);
-        }
     });
 
-    // 3. 處理 Excel 資料 (共用邏輯)
     function processWorkbook(workbook) {
         resultArea.innerHTML = '';
-        let hasData = false;
-
         workbook.SheetNames.forEach(sheetName => {
             const worksheet = workbook.Sheets[sheetName];
             const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
-
-            if(jsonData.length > 1) {
-                processSheet(sheetName, jsonData);
-                hasData = true;
-            }
+            if (jsonData.length > 1) renderSheet(sheetName, jsonData);
         });
-
         loading.style.display = 'none';
-        
-        if(!hasData) {
-            showError("Excel 檔案中似乎沒有資料，或格式無法辨識。");
-        }
     }
 
-    // 4. 解析單一工作表
-    function processSheet(sheetName, data) {
+    function renderSheet(name, data) {
         const section = document.createElement('div');
         const grid = document.createElement('div');
         grid.className = 'grid-section';
 
         const title = document.createElement('div');
         title.className = 'sheet-title';
-        title.innerHTML = `${sheetName} <span class="sheet-badge">${data.length - 1} 組配色</span>`;
+        title.innerHTML = `<span>${name}</span>`;
         section.appendChild(title);
         section.appendChild(grid);
 
-        // 從第 2 行開始讀 (跳過標題)
-        for(let i=1; i<data.length; i++) {
+        for (let i = 1; i < data.length; i++) {
             const row = data[i];
-            if(!row || row.length === 0) continue;
+            if (!row || row.length === 0) continue;
 
-            let colors = [];
-            let texts = [];
+            let colors = [], texts = [], image = null;
 
             row.forEach(cell => {
-                if(!cell) return;
-                const str = String(cell).trim();
-                
-                // 簡易 HEX 辨識
-                const hexMatch = str.match(/#?([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})/);
-                
-                if(hexMatch && str.length < 25) { 
-                    let cleanHex = hexMatch[0];
-                    if(!cleanHex.startsWith('#')) cleanHex = '#' + cleanHex;
-                    colors.push(cleanHex);
-                } else {
-                    // 自動文字校正：栌 -> 櫨
-                    let fixedText = str.replace(/栌/g, '櫨');
-                    texts.push(fixedText);
+                const str = String(cell || "").trim();
+                if (str.match(/#?([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})/)) {
+                    colors.push(str.startsWith('#') ? str : '#' + str);
+                } else if (str.match(/\.(jpg|jpeg|png|webp|gif)$/i)) {
+                    image = str;
+                } else if (str !== "") {
+                    // 校正栌字為櫨
+                    texts.push(str.replace(/栌/g, '櫨'));
                 }
             });
 
-            if(colors.length > 0) {
-                const card = createCard(colors, texts);
+            if (colors.length > 0) {
+                const card = createCard(colors, texts, image);
                 grid.appendChild(card);
             }
         }
+        resultArea.appendChild(section);
+    }
 
-        if(grid.children.length > 0) {
-            resultArea.appendChild(section);
+    function createCard(colors, texts, image) {
+        const card = document.createElement('div');
+        card.className = 'color-card';
+
+        if (image) {
+            const img = document.createElement('img');
+            img.src = `./${image}`;
+            img.onerror = () => img.style.display = 'none';
+            card.appendChild(img);
         }
-    }
 
-    // 5. 建立卡片 UI
-    function createCard(colors, texts) {
-        const div = document.createElement('div');
-        div.className = 'color-card';
-
-        const previewDiv = document.createElement('div');
-        previewDiv.className = 'color-preview-container';
-        
-        colors.forEach(color => {
-            const swatch = document.createElement('div');
-            swatch.className = 'color-swatch';
-            swatch.style.backgroundColor = color;
-            swatch.style.color = getContrastYIQ(color);
-            swatch.innerText = color;
-            swatch.onclick = () => copyText(color);
-            previewDiv.appendChild(swatch);
+        const swatches = document.createElement('div');
+        swatches.className = 'color-swatches';
+        colors.forEach(c => {
+            const s = document.createElement('div');
+            s.className = 'swatch';
+            s.style.backgroundColor = c;
+            s.style.color = getContrast(c);
+            s.innerText = c;
+            s.onclick = () => copyText(c);
+            swatches.appendChild(s);
         });
+        card.appendChild(swatches);
 
-        const bodyDiv = document.createElement('div');
-        bodyDiv.className = 'card-body';
+        const body = document.createElement('div');
+        body.className = 'card-body';
+        const title = texts.length > 0 ? texts[0] : '未命名配色';
+        const desc = texts.length > 1 ? texts.slice(1).join(' / ') : '';
+        body.innerHTML = `<div class="card-title">${title}</div><div class="card-desc">${desc}</div>`;
         
-        const titleText = texts.length > 0 ? texts[0] : '未命名配色';
-        const descText = texts.length > 1 ? texts.slice(1).join(' / ') : '';
+        const btn = document.createElement('button');
+        btn.className = 'btn-copy-all';
+        btn.innerText = '複製所有代碼';
+        btn.onclick = () => copyText(colors.join(', '));
+        body.appendChild(btn);
 
-        bodyDiv.innerHTML = `
-            <div class="card-title">${titleText}</div>
-            <div class="card-desc">${descText}</div>
-            <button class="btn-copy" onclick="copyText('${colors.join(', ')}')">複製所有代碼</button>
-        `;
-
-        div.appendChild(previewDiv);
-        div.appendChild(bodyDiv);
-        return div;
+        card.appendChild(body);
+        return card;
     }
 
-    // 6. 搜尋功能
+    // 搜尋過濾
     searchInput.addEventListener('input', (e) => {
         const term = e.target.value.toLowerCase();
-        const cards = document.querySelectorAll('.color-card');
-        
-        cards.forEach(card => {
-            const text = card.innerText.toLowerCase();
-            if(text.includes(term)) {
-                card.style.display = 'flex';
-            } else {
-                card.style.display = 'none';
-            }
+        document.querySelectorAll('.color-card').forEach(card => {
+            card.style.display = card.innerText.toLowerCase().includes(term) ? 'flex' : 'none';
         });
     });
 
-    // 工具函式
     function copyText(text) {
-        if (navigator.clipboard && window.isSecureContext) {
+        if (navigator.clipboard) {
             navigator.clipboard.writeText(text).then(() => showToast(text));
         } else {
             const ta = document.createElement("textarea");
-            ta.value = text;
-            document.body.appendChild(ta);
-            ta.select();
-            document.execCommand('copy');
-            document.body.removeChild(ta);
-            showToast(text);
+            ta.value = text; document.body.appendChild(ta);
+            ta.select(); document.execCommand('copy');
+            document.body.removeChild(ta); showToast(text);
         }
     }
 
-    function showToast(text) {
+    function showToast(txt) {
         const t = document.getElementById('toast');
-        t.innerText = `已複製：${text}`;
-        t.style.opacity = 1;
+        t.innerText = `已複製：${txt}`; t.style.opacity = 1;
         setTimeout(() => t.style.opacity = 0, 2000);
     }
 
-    function showError(msg) {
-        errorMsg.innerText = "⚠️ " + msg;
-        errorMsg.style.display = 'block';
-    }
-
-    function getContrastYIQ(hexcolor){
-        hexcolor = hexcolor.replace("#", "");
-        if(hexcolor.length === 3) hexcolor = hexcolor.split('').map(c=>c+c).join('');
-        var r = parseInt(hexcolor.substr(0,2),16);
-        var g = parseInt(hexcolor.substr(2,2),16);
-        var b = parseInt(hexcolor.substr(4,2),16);
-        var yiq = ((r*299)+(g*587)+(b*114))/1000;
-        return (yiq >= 128) ? 'black' : 'white';
+    function getContrast(hex) {
+        hex = hex.replace('#', '');
+        if (hex.length === 3) hex = hex.split('').map(s => s + s).join('');
+        const r = parseInt(hex.substr(0, 2), 16), g = parseInt(hex.substr(2, 2), 16), b = parseInt(hex.substr(4, 2), 16);
+        return ((r * 299 + g * 587 + b * 114) / 1000) > 128 ? '#000' : '#fff';
     }
 </script>
-
 </body>
 </html>
