@@ -1,5 +1,3 @@
-# ColorPalette
-# Excel 全能色卡讀取器
 # Color Palette Reader
 
 這是一個基於瀏覽器的色彩管理工具，採用「冬日花卉 (Winter Blossom)」美學設計。
